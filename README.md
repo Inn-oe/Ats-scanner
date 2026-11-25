@@ -32,11 +32,13 @@ python -m ats.cli my_cv.docx --job "SQL, Python, Power BI, communication, stakeh
 python -m ats.cli my_cv.pdf job.txt --json     # full report as JSON
 ```
 
-### Deploy for free
+### Live app
 
-1. Go to [share.streamlit.io](https://share.streamlit.io) and sign in with GitHub.
-2. Choose **New app**, pick `Inn-oe/ats-scanner`, branch `main`, file `app.py`.
-3. Deploy. You get a public link you can open on your phone.
+Deployed on Render (free plan): https://ats-scanner-qlo8.onrender.com
+
+The free plan sleeps after 15 minutes without visitors, so the first visit after a break can take up to a minute to load. Settings are in [`render.yaml`](render.yaml).
+
+To deploy your own copy instead, use Render's **New > Blueprint** with this repo, or [Streamlit Community Cloud](https://share.streamlit.io) with `app.py` as the main file.
 
 ## How the score works
 
