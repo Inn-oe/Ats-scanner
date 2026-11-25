@@ -132,3 +132,34 @@ def test_per_level_education_required_and_not_needed():
     req = Requirements(education_level="must")
     r = evaluate(facts(CV_B), req)
     assert r.verdict == "Shortlist" and r.checks[0].outcome == "n/a"
+
+
+import pytest
+
+DOB_CASES = [
+    ("Date of Birth: 12/03/1998", 28), ("DOB: 12/03/1998", 28), ("D.O.B 12-03-1998", 28), ("Date of birth: 12.03.1998", 28),
+    ("Date of Birth: 12 March 1998", 28), ("Date of Birth: 12th March 1998", 28), ("DOB: March 12, 1998", 28),
+    ("Date of Birth: March 1998", 28), ("Date of Birth: 1998-03-12", 28), ("DOB: 1998/03/12", 28),
+    ("Born: 12 Mar 1998", 28), ("Born on 12 March 1998", 28), ("Birth date: 12/03/1998", 28),
+    ("Date of Birth\n12 March 1998", 28), ("DATE OF BIRTH : 12 MARCH 1998", 28), ("Birthday: 12 March 1998", 28),
+    ("D.O.B: 12/03/98", 28), ("Date of Birth: 12/12/1998", 27), ("Date of Birth: 5 December 1998", 27),
+    ("Born in 1998", 28), ("Date of Birth: 12 Sept 1998", 28), ("Date of Birth | 12 March 1998", 28),
+    ("Place of Birth: Harare\nDate of Birth: 02/09/1990", 36), ("Date of Birth: 03/25/1998", 28),  # month first
+    ("Date of Birth: 12/03/05", 21), ("Nationality: Zimbabwean\nDOB 15 January 1995", 31),
+    ("Date of Birth: 25/11/2000", 26),  # birthday today
+    ("Date of Birth: 26/11/2000", 25),  # birthday tomorrow
+    ("Age: 28", 28), ("28 years old", 28),
+]
+
+
+@pytest.mark.parametrize("text,expected", DOB_CASES)
+def test_age_from_many_date_of_birth_formats(text, expected):
+    assert extract_age(text, TODAY) == expected
+
+
+def test_age_source_and_dob_wins_over_stated_age():
+    f = facts("Sam Dube\nAge: 40\nDate of Birth: 12 March 1998\nExperience\nClerk 2020 - 2022 at a shop")
+    assert f.age == 28 and f.age_source == "date of birth"
+    r = evaluate(f, Requirements(age_level="must", age_min=25, age_max=35))
+    assert r.verdict == "Shortlist" and "from date of birth" in r.checks[4].detail
+    assert extract_age("nothing") is None

@@ -75,7 +75,7 @@ def requirements_form() -> Requirements:
             c1, c2 = st.columns(2)
             r.age_min = int(c1.number_input("Minimum age", 16, 80, 18, key="age_min"))
             r.age_max = int(c2.number_input("Maximum age", int(r.age_min), 80, max(int(r.age_min), 45), key="age_max"))
-            st.caption("Age is read from “Age: 27”, “27 years old” or a date of birth. CVs that do not state it are marked **Check manually**. "
+            st.caption("Age is worked out from the date of birth on the CV (for example 12/03/1998, 12 March 1998 or 1998-03-12), or read from “Age: 27”. CVs with neither are marked **Check manually**. "
                        "Age limits can be restricted by employment law, so check what applies to you.")
 
     with tabs[5]:

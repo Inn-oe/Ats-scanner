@@ -80,6 +80,7 @@ class CandidateFacts:
     education_levels: list[str]
     years_experience: float | None
     age: int | None
+    age_source: str = ""  # 'date of birth', 'stated age' or ''
 
 
 def split_sections(text: str) -> list[tuple[str, str]]:
@@ -147,33 +148,75 @@ def years_of_experience(exp_text: str, full_text: str, today: dt.date | None = N
     return round(max(values), 1) if values else None
 
 
-def extract_age(text: str, today: dt.date | None = None) -> int | None:
+_DOB_LABEL = re.compile(
+    r"\b(?:date\s*of\s*birth|birth\s*date|birthdate|birthday|d\.?\s?o\.?\s?b|born(?:\s+(?:on|in))?|birth)"
+    r"(?![A-Za-z])\.?\s*[:\-|–]?\s*([^\n]{0,40})",
+    re.I,
+)
+
+
+def _month_num(word: str) -> int | None:
+    return _MONTHS.get(word[:3].lower()) if len(word) >= 3 else None
+
+
+def parse_birth_date(chunk: str, today: dt.date) -> tuple[int, int | None, int | None] | None:
+    """Find (year, month, day) in text such as '12/03/1998', '12th March 1998', '1998-03-12', 'March 1998', '1998'.
+    Month and day are None when the CV does not give them. Numeric dates are read day first (12/03 = 12 March)
+    unless the second number cannot be a month."""
+    m = re.search(r"\b((?:19|20)\d{2})[/.\-](\d{1,2})[/.\-](\d{1,2})\b", chunk)  # 1998-03-12
+    if m and 1 <= int(m[2]) <= 12 and 1 <= int(m[3]) <= 31:
+        return int(m[1]), int(m[2]), int(m[3])
+    m = re.search(r"\b(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4}|\d{2})\b", chunk)  # 12/03/1998 or 12/03/98
+    if m:
+        day, month, yr = int(m[1]), int(m[2]), int(m[3])
+        if month > 12 >= day:
+            day, month = month, day  # written month first
+        if len(m[3]) == 2:
+            yr += 1900 if yr > today.year % 100 else 2000
+        if 1 <= month <= 12 and 1 <= day <= 31:
+            return yr, month, day
+    m = re.search(r"\b(\d{1,2})(?:st|nd|rd|th)?\s*(?:of\s+)?([A-Za-z]{3,9})\.?,?\s+((?:19|20)\d{2})\b", chunk)  # 12 March 1998
+    if m and _month_num(m[2]) and 1 <= int(m[1]) <= 31:
+        return int(m[3]), _month_num(m[2]), int(m[1])
+    m = re.search(r"\b([A-Za-z]{3,9})\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+((?:19|20)\d{2})\b", chunk)  # March 12, 1998
+    if m and _month_num(m[1]) and 1 <= int(m[2]) <= 31:
+        return int(m[3]), _month_num(m[1]), int(m[2])
+    m = re.search(r"\b([A-Za-z]{3,9})\.?\s+((?:19|20)\d{2})\b", chunk)  # March 1998
+    if m and _month_num(m[1]):
+        return int(m[2]), _month_num(m[1]), None
+    m = re.search(r"\b((?:19|20)\d{2})\b", chunk)  # 1998
+    return (int(m[1]), None, None) if m else None
+
+
+def extract_age_info(text: str, today: dt.date | None = None) -> tuple[int | None, str]:
+    """Return (age, source). The age is worked out from a date of birth when the CV has one,
+    otherwise taken from a stated age such as 'Age: 27'. Source is 'date of birth', 'stated age' or ''."""
     today = today or dt.date.today()
 
     def valid(a: int) -> int | None:
         return a if 14 <= a <= 80 else None
 
+    for m in _DOB_LABEL.finditer(text):
+        found = parse_birth_date(m.group(1), today)
+        if not found:
+            continue
+        year, month, day = found
+        age = today.year - year
+        if month:  # birthday not reached yet this year (assume mid-month when the day is missing)
+            age -= (today.month, today.day) < (month, day or 15)
+        age = valid(age)
+        if age is not None:
+            return age, "date of birth"
     m = re.search(r"\bage\s*[:\-]?\s*(\d{2})\b", text, re.I) or re.search(
         r"\b(\d{2})\s*(?:years?\s*old|yrs?\s*old|y/o)\b", text, re.I
     )
-    if m:
-        return valid(int(m.group(1)))
-    m = re.search(r"(?:date of birth|d\.?o\.?b\.?|born(?:\s+on)?)\s*[:\-]?\s*([^\n]{0,30})", text, re.I)
-    if not m:
-        return None
-    chunk = m.group(1)
-    d = re.search(r"(\d{1,2})[/.\-](\d{1,2})[/.\-]((?:19|20)\d{2})", chunk)
-    if d:
-        day, month, year = int(d.group(1)), int(d.group(2)), int(d.group(3))
-    else:
-        d = re.search(r"(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]{3,9})\.?,?\s+((?:19|20)\d{2})", chunk)
-        if d and d.group(2)[:3].lower() in _MONTHS:
-            day, month, year = int(d.group(1)), _MONTHS[d.group(2)[:3].lower()], int(d.group(3))
-        else:
-            y = re.search(r"\b((?:19|20)\d{2})\b", chunk)
-            return valid(today.year - int(y.group(1))) if y else None
-    age = today.year - year - ((today.month, today.day) < (month, day))
-    return valid(age)
+    if m and (age := valid(int(m.group(1)))) is not None:
+        return age, "stated age"
+    return None, ""
+
+
+def extract_age(text: str, today: dt.date | None = None) -> int | None:
+    return extract_age_info(text, today)[0]
 
 
 def guess_name(text: str, fallback: str) -> str:
@@ -189,6 +232,7 @@ def guess_name(text: str, fallback: str) -> str:
 def extract_facts(filename: str, text: str, today: dt.date | None = None) -> CandidateFacts:
     sections = split_sections(text)
     exp = experience_text(sections)
+    age, age_source = extract_age_info(text, today)
     email = re.search(r"[\w.+-]+@[\w-]+\.[\w.]+", text)
     phone = re.search(r"\+?\d[\d \-()]{8,}\d", text)
     stem = re.sub(r"\.[A-Za-z0-9]+$", "", filename.split("/")[-1]).replace("_", " ").replace("-", " ")
@@ -201,7 +245,8 @@ def extract_facts(filename: str, text: str, today: dt.date | None = None) -> Can
         exp_text=exp,
         education_levels=education_levels(text),
         years_experience=years_of_experience(exp, text, today),
-        age=extract_age(text, today),
+        age=age,
+        age_source=age_source,
     )
 
 
@@ -334,13 +379,14 @@ def _check_licence(f: CandidateFacts, r: Requirements) -> Check:
 def _check_age(f: CandidateFacts, r: Requirements) -> Check:
     if r.age_level == "off" or (r.age_min is None and r.age_max is None):
         return _na("Age")
+    src = " (from date of birth)" if f.age_source == "date of birth" else ""
     if f.age is None:
-        return Check("Age", r.age_level, "unknown", "age not stated on CV", 0.0)
+        return Check("Age", r.age_level, "unknown", "no age or date of birth on CV", 0.0)
     if r.age_min is not None and f.age < r.age_min:
-        return Check("Age", r.age_level, "fail", f"{f.age} (min {r.age_min})", 0.0)
+        return Check("Age", r.age_level, "fail", f"{f.age}{src} (min {r.age_min})", 0.0)
     if r.age_max is not None and f.age > r.age_max:
-        return Check("Age", r.age_level, "fail", f"{f.age} (max {r.age_max})", 0.0)
-    return Check("Age", r.age_level, "pass", str(f.age), 1.0)
+        return Check("Age", r.age_level, "fail", f"{f.age}{src} (max {r.age_max})", 0.0)
+    return Check("Age", r.age_level, "pass", f"{f.age}{src}", 1.0)
 
 
 def _check_skills(f: CandidateFacts, r: Requirements) -> Check:
