@@ -12,7 +12,7 @@ Each requirement has its own tab and can be set to **Not needed**, **Nice to hav
 
 | Tab | What you set |
 |---|---|
-| Education | Each type (secondary, certificate / short course, training / apprenticeship, diploma, degree, master's, PhD) is set to **Not needed**, **Accepted** (candidate needs any one accepted type) or **Required**, plus optional fields of study. Set the whole tab to **Not needed** if you do not require any qualification. |
+| Education | Each type (secondary, certificate / short course, training / apprenticeship, diploma, degree, master's, PhD) is set to **Not needed**, **Accepted** (candidate needs any one accepted type) or **Required**, plus optional fields of study. Leave every type on **Not needed** if you do not require any qualification. |
 | Years of experience | Minimum, and optionally a maximum. |
 | Position held | Job titles you want to see in a candidate's work experience. |
 | Licence | Driver's licence, forklift, first aid, professional registrations, or your own. Need all of them or any one. |
