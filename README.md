@@ -2,6 +2,29 @@
 
 Check how well your CV matches a job advert before you apply, the way an Applicant Tracking System (ATS) would.
 
+There are two modes, chosen in the sidebar.
+
+## Mode 1: Screen many CVs (for employers)
+
+Set your requirements, import all your CVs at once (select many files, or upload one ZIP; 100+ is fine), and get a ranked shortlist you can download as CSV for Excel.
+
+Each requirement has its own tab and can be set to **Not needed**, **Nice to have** or **Must have**:
+
+| Tab | What you set |
+|---|---|
+| Education | Which levels you accept (secondary, certificate / short course, training / apprenticeship, diploma, degree, master's, PhD), plus optional fields of study. Choose **Not needed** if you do not require a degree or any qualification. |
+| Years of experience | Minimum, and optionally a maximum. |
+| Position held | Job titles you want to see in a candidate's work experience. |
+| Licence | Driver's licence, forklift, first aid, professional registrations, or your own. Need all of them or any one. |
+| Age | The minimum and maximum age the company wants. |
+| Skills & qualities | Your list of skills, with the share a candidate must have. |
+
+A CV that fails any **Must have** is *Not shortlisted*. A CV where a must-have cannot be read (for example no age on the CV) is *Check manually*. Everyone else is *Shortlist*, ranked by a score from the requirements you switched on. Change a requirement and the ranking updates straight away. Open any candidate to see exactly which checks passed or failed.
+
+Notes: age and years of experience are read from the CV text (date of birth, "Age: 27", dated roles). Age limits can be restricted by employment law, so check what applies to you. Imported CVs are kept in memory for your session only.
+
+## Mode 2: Check one CV against a job (for job seekers)
+
 Upload your CV (PDF, DOCX or TXT), paste a job advert or just a list of the qualities you need, and you get:
 
 - **A match score out of 100**, with a breakdown (skills, keywords, overall relevance, education fit, CV structure).
@@ -82,7 +105,11 @@ pytest
 Project layout:
 
 ```
-app.py            Streamlit web app
+app.py            Streamlit entry point (mode switch)
+screening_ui.py   Employer page: requirement tabs, bulk import, ranked results
+single_cv.py      Job seeker page: one CV against one job
+ats/screening.py  Requirements, CV facts (age, years, education) and shortlist logic
+ats/bulk.py       Bulk import of many files or ZIPs
 ats/parser.py     Reads text from PDF, DOCX and TXT files
 ats/skills.py     Skills taxonomy (edit this to add skills)
 ats/analyzer.py   Scoring, matching and suggestions
