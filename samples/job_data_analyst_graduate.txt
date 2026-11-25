@@ -1,0 +1,21 @@
+Graduate Data Analyst
+
+We are looking for a curious Graduate Data Analyst to join our Insights team on our 2026 graduate programme.
+
+Responsibilities
+- Clean, analyse and interpret large datasets to support business decisions
+- Build and maintain Power BI dashboards and automated reports for stakeholders
+- Write SQL queries to extract data from our data warehouse
+- Use Python or R for statistical analysis and forecasting
+- Present insights clearly to non-technical stakeholders
+
+Requirements
+- A 2:1 degree in Data Science, Statistics, Mathematics, Economics or a related quantitative subject
+- Strong SQL and Excel skills
+- Experience with Python (pandas) or R
+- Excellent communication and problem solving skills
+- Strong attention to detail and the ability to manage time across several projects
+
+Desirable
+- Experience with Azure or AWS would be an advantage
+- Knowledge of machine learning is a plus

@@ -1,0 +1,23 @@
+Jane Moyo
+Harare, Zimbabwe | jane.moyo@example.com | +263 77 123 4567 | linkedin.com/in/janemoyo | github.com/janemoyo
+
+Profile
+Data Science graduate with hands-on experience in Python, SQL and Tableau, keen to turn data into decisions.
+
+Education
+BSc (Hons) Data Science and Informatics, University of Zimbabwe, 2022 - 2026. Upper Second (2:1)
+Relevant modules: Statistical Inference, Machine Learning, Databases, Time Series Analysis
+
+Experience
+Data Intern, ABC Bank, Jun 2025 - Aug 2025
+• Responsible for weekly reports on loan applications
+• Wrote SQL queries to pull customer data for the credit risk team
+• Built a Tableau dashboard tracking 12 branch KPIs
+
+Projects
+Customer churn prediction (Python, pandas, scikit-learn)
+• Trained a random forest model on 10,000 customer records reaching 87% accuracy
+• Cleaned and merged 3 data sources
+
+Skills
+Python, pandas, scikit-learn, SQL, Tableau, Excel, Git, teamwork
