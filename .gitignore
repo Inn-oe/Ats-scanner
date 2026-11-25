@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.streamlit/secrets.toml
+# Keep your real CV out of the repo
+my_cv*
+*.pdf
+*.docx
