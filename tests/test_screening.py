@@ -121,3 +121,14 @@ def test_zip_import_and_duplicates():
 def test_bad_zip_reported():
     files, problems = expand_uploads([("x.zip", b"not a zip")])
     assert files == [] and problems
+
+
+def test_per_level_education_required_and_not_needed():
+    # Diploma required; degree marked not needed (simply not listed)
+    req = Requirements(education_level="must", education_must=["Diploma"])
+    assert evaluate(facts(CV_A), req).verdict == "Shortlist"
+    assert evaluate(facts(CV_B), req).verdict == "Not shortlisted"
+    # nothing selected => education ignored
+    req = Requirements(education_level="must")
+    r = evaluate(facts(CV_B), req)
+    assert r.verdict == "Shortlist" and r.checks[0].outcome == "n/a"

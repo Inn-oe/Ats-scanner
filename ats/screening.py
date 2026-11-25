@@ -214,6 +214,7 @@ def extract_facts(filename: str, text: str, today: dt.date | None = None) -> Can
 class Requirements:
     education_level: str = "off"
     education_accepted: list[str] = field(default_factory=list)  # any one of these is enough
+    education_must: list[str] = field(default_factory=list)  # every one of these is needed
     education_fields: list[str] = field(default_factory=list)  # optional subjects, any one is enough
     experience_level: str = "off"
     min_years: float = 0.0
@@ -281,6 +282,11 @@ def _check_education(f: CandidateFacts, r: Requirements) -> Check:
         ok = [lvl for lvl in r.education_accepted if lvl in f.education_levels]
         fracs.append(1.0 if ok else 0.0)
         notes.append(("has " + ", ".join(ok)) if ok else "no accepted qualification found")
+    if r.education_must:
+        have = [lvl for lvl in r.education_must if lvl in f.education_levels]
+        fracs.append(len(have) / len(r.education_must))
+        missing = [lvl for lvl in r.education_must if lvl not in have]
+        notes.append("missing " + ", ".join(missing) if missing else "has " + ", ".join(have))
     fields_ = [x for x in r.education_fields if term_present(x, f.text)]
     if r.education_fields:
         fracs.append(1.0 if fields_ else 0.0)

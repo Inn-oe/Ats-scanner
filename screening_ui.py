@@ -30,8 +30,20 @@ def requirements_form() -> Requirements:
         if r.education_level == "off":
             st.info("Education is **not needed**. No CV is marked down for its education, so people without a degree are treated equally.")
         else:
-            st.caption("Tick every level you accept. A candidate needs any one of them.")
-            r.education_accepted = st.multiselect("Accepted qualifications", EDU_ORDER, default=["Diploma", "Degree"], key="edu_accept")
+            st.caption("For each qualification type, say whether it is needed. Mark the ones you do not require as **Not needed**; "
+                       "they are ignored. **Accepted** means a candidate needs any one of the accepted types. "
+                       "**Required** means every candidate must have it.")
+            for lvl in EDU_ORDER:
+                c1, c2 = st.columns([2, 3])
+                c1.write(f"**{lvl}**")
+                choice = c2.radio(lvl, ["Not needed", "Accepted", "Required"], horizontal=True, key=f"edu_{lvl}",
+                                  index=1 if lvl in ("Diploma", "Degree") else 0, label_visibility="collapsed")
+                if choice == "Accepted":
+                    r.education_accepted.append(lvl)
+                elif choice == "Required":
+                    r.education_must.append(lvl)
+            if not (r.education_accepted or r.education_must):
+                st.info("Every qualification type is set to Not needed, so education is ignored.")
             r.education_fields = _lines(st.text_area("Fields of study (optional, one per line)", key="edu_fields",
                                                       placeholder="Accounting\nData science", height=90))
 
